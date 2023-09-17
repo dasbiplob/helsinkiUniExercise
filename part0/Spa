@@ -17,3 +17,8 @@ sequenceDiagram
     activate server
     server-->>browser: the JavaScript file
     deactivate server
+
+    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/data.json
+    activate server
+    server-->>browser: [{ "content": "This is my first SPA application", "date": "2023-09-17" }, ... ]
+    deactivate server
