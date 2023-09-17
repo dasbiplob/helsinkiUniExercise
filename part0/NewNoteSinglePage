@@ -1,0 +1,11 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Server
+
+    User ->> Browser: Enters text and clicks Save
+    Browser ->> Server: Sends a POST request with the new note
+    Server -->> Database: Saves the note
+    Database -->> Server: Confirmation
+    Server -->> Browser: Sends updated note list
+    Browser -->> User: Updates the UI to show the new note
