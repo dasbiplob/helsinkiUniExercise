@@ -13,7 +13,6 @@ const App = () => {
   ];
 
   const [selected, setSelected] = useState(0);
-  // Use an array to store votes for each anecdote
   const [votes, setVotes] = useState(Array(anecdotes.length).fill(0));
 
   const handleNextAnecdote = () => {
@@ -22,20 +21,29 @@ const App = () => {
   };
 
   const handleVote = () => {
-    // Make a copy of the votes array and update the vote for the selected anecdote
     const newVotes = [...votes];
     newVotes[selected] += 1;
     setVotes(newVotes);
   };
 
+  // Find the index of the anecdote with the most votes
+  const mostVotedIndex = votes.indexOf(Math.max(...votes));
+
   return (
     <div>
       <div>
+        <h2>Anecdote of the Day</h2>
         <p>{anecdotes[selected]}</p>
         <p>Votes: {votes[selected]}</p>
+        <button onClick={handleVote}>Vote</button>
+        <button onClick={handleNextAnecdote}>Next Anecdote</button>
       </div>
-      <button onClick={handleVote}>Vote</button>
-      <button onClick={handleNextAnecdote}>Next Anecdote</button>
+      <div>
+        <h2>Most Voted Anecdote</h2>
+        {mostVotedIndex !== -1 && (
+          <p>{anecdotes[mostVotedIndex]}</p>
+        )}
+      </div>
     </div>
   );
 };
