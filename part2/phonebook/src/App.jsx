@@ -1,10 +1,8 @@
-import { useState } from 'react'
+import React, { useState } from 'react';
 
 const App = () => {
-  const [persons, setPersons] = useState([
-    { name: 'Arto Hellas' }
-  ]) 
-  const [newName, setNewName] = useState('')
+  const [persons, setPersons] = useState([{ name: 'Arto Hellas' }]);
+  const [newName, setNewName] = useState('');
 
   const handleNameChange = (event) => {
     setNewName(event.target.value);
@@ -13,11 +11,17 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault(); // Prevent default form submission behavior
 
+    // Check if the new name already exists in the phonebook
+    const isDuplicate = persons.some((person) => person.name === newName);
+    if (isDuplicate) {
+      alert(`${newName} is already added to the phonebook`);
+      return;
+    }
+
     const newPerson = { name: newName };
     setPersons([...persons, newPerson]);
     setNewName(''); // Clear the input field after adding a person
   };
-
 
   return (
     <div>
@@ -41,5 +45,4 @@ const App = () => {
   );
 };
 
-
-export default App
+export default App;
