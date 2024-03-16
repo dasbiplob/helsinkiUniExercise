@@ -1,26 +1,33 @@
 import React, { useState } from 'react';
 
 const App = () => {
-  const [persons, setPersons] = useState([{ name: 'Arto Hellas' }]);
+  const [persons, setPersons] = useState([
+    { name: 'Arto Hellas', number: '123-456-7890' }
+  ]);
   const [newName, setNewName] = useState('');
+  const [newNumber, setNewNumber] = useState('');
 
   const handleNameChange = (event) => {
     setNewName(event.target.value);
   };
 
-  const addPerson = (event) => {
-    event.preventDefault(); // Prevent default form submission behavior
+  const handleNumberChange = (event) => {
+    setNewNumber(event.target.value);
+  };
 
-    // Check if the new name already exists in the phonebook
-    const isDuplicate = persons.some((person) => person.name === newName);
-    if (isDuplicate) {
+  const addPerson = (event) => {
+    event.preventDefault();
+
+    const isDuplicateName = persons.some((person) => person.name === newName);
+    if (isDuplicateName) {
       alert(`${newName} is already added to the phonebook`);
       return;
     }
 
-    const newPerson = { name: newName };
+    const newPerson = { name: newName, number: newNumber };
     setPersons([...persons, newPerson]);
-    setNewName(''); // Clear the input field after adding a person
+    setNewName('');
+    setNewNumber('');
   };
 
   return (
@@ -31,14 +38,18 @@ const App = () => {
           name: <input value={newName} onChange={handleNameChange} />
         </div>
         <div>
+          number: <input value={newNumber} onChange={handleNumberChange} />
+        </div>
+        <div>
           <button type="submit">add</button>
         </div>
       </form>
       <h2>Numbers</h2>
-      {/* Display added persons */}
       <ul>
         {persons.map((person, index) => (
-          <li key={index}>{person.name}</li>
+          <li key={index}>
+            {person.name} {person.number}
+          </li>
         ))}
       </ul>
     </div>
