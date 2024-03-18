@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios'
 import phonebookService from './services/phonebookService';
 import Persons from './components/Persons';
+import Notification from './components/Notification';
 
 const Filter = ({ searchTerm, handleSearchChange }) => {
   return (
@@ -40,6 +41,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   //const [showAll, setShowAll] = useState(true)
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     phonebookService
@@ -52,6 +54,13 @@ const App = () => {
       });
   }, []);
 
+
+  const showNotification = (message, type = 'success') => {
+    setNotification({ message, type });
+    setTimeout(() => {
+      setNotification(null);
+    }, 5000);
+  };
 
 
   const handleNameChange = (event) => {
@@ -86,9 +95,15 @@ const App = () => {
             );
             setNewName('');
             setNewNumber('');
+            showNotification(`Updated ${updatedPerson.name}'s number successfully.`, 'success');
           })
           .catch((error) => {
             console.log('Error updating person:', error);
+            if (error.response && error.response.data) {
+              showNotification(error.response.data.error, 'error');
+            } else {
+              showNotification('Failed to update person.', 'error');
+            }
           });
       }
     } else {
@@ -99,12 +114,19 @@ const App = () => {
           setPersons([...persons, response.data]);
           setNewName('');
           setNewNumber('');
+          showNotification(`Added ${response.data} successfully.`, 'success');
         })
         .catch((error) => {
           console.log('Error adding person:', error);
+          if (error.response && error.response.data) {
+            showNotification(error.response.data.error, 'error');
+          } else {
+            showNotification('Failed to add person.', 'error');
+          }
         });
     }
   };
+  
   
   const handleDelete = (id) => {
     const confirmDelete = window.confirm('Are you sure you want to delete this person?');
@@ -113,21 +135,25 @@ const App = () => {
         .remove(id)
         .then(() => {
           setPersons(persons.filter(person => person.id !== id));
+          showNotification('Deleted person successfully.', 'success');
         })
         .catch(error => {
           console.log('Error deleting person:', error);
+          showNotification('Failed to delete person.', 'error');
         });
     }
   };
+  
 
   const filteredPersons = persons.filter((person) => {
     return person && person.name && person.name.toLowerCase().includes(searchTerm ? searchTerm.toLowerCase() : '');
   });
+  
 
   return (
     <div>
       <h2>Phonebook</h2>
-
+      <Notification message={notification?.message} type={notification?.type} />
       <Filter searchTerm={searchTerm} handleSearchChange={handleSearchChange} />
 
       <h3>Add a new</h3>
