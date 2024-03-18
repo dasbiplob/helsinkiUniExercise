@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios'
+import phonebookService from './services/phonebookService';
+import Persons from './components/Persons';
 
 const Filter = ({ searchTerm, handleSearchChange }) => {
   return (
@@ -25,17 +27,6 @@ const PersonForm = ({ newName, newNumber, handleNameChange, handleNumberChange, 
   );
 };
 
-const Persons = ({ persons }) => {
-  return (
-    <ul>
-      {persons.map((person) => (
-        <li key={person.id}>
-          {person.name} {person.number}
-        </li>
-      ))}
-    </ul>
-  );
-};
 
 const App = () => {
   // const [persons, setPersons] = useState([
@@ -48,16 +39,19 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  //const [showAll, setShowAll] = useState(true)
 
   useEffect(() => {
-    console.log('effect')
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {
-        console.log('promise fulfilled')
-        setNotes(response.data)
+    phonebookService
+      .getAll()
+      .then(initialPersons => {
+        setPersons(initialPersons);
       })
-  }, [])
+      .catch(error => {
+        console.log('Error fetching data:', error);
+      });
+  }, []);
+
 
 
   const handleNameChange = (event) => {
@@ -74,22 +68,61 @@ const App = () => {
 
   const addPerson = (event) => {
     event.preventDefault();
-
-    const isDuplicateName = persons.some((person) => person.name === newName);
-    if (isDuplicateName) {
-      alert(`${newName} is already added to the phonebook`);
-      return;
+  
+    const existingPerson = persons.find((person) => person.name === newName);
+    if (existingPerson) {
+      const confirmUpdate = window.confirm(
+        `${newName} is already added to the phonebook. Do you want to update the number?`
+      );
+      if (confirmUpdate) {
+        const updatedPerson = { ...existingPerson, number: newNumber };
+        phonebookService
+          .update(existingPerson.id, updatedPerson)
+          .then((response) => {
+            setPersons(
+              persons.map((person) =>
+                person.id === existingPerson.id ? response.data : person
+              )
+            );
+            setNewName('');
+            setNewNumber('');
+          })
+          .catch((error) => {
+            console.log('Error updating person:', error);
+          });
+      }
+    } else {
+      const newPerson = { name: newName, number: newNumber };
+      phonebookService
+        .create(newPerson)
+        .then((response) => {
+          setPersons([...persons, response.data]);
+          setNewName('');
+          setNewNumber('');
+        })
+        .catch((error) => {
+          console.log('Error adding person:', error);
+        });
     }
-
-    const newPerson = { name: newName, number: newNumber, id: persons.length + 1 };
-    setPersons([...persons, newPerson]);
-    setNewName('');
-    setNewNumber('');
+  };
+  
+  const handleDelete = (id) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this person?');
+    if (confirmDelete) {
+      phonebookService
+        .remove(id)
+        .then(() => {
+          setPersons(persons.filter(person => person.id !== id));
+        })
+        .catch(error => {
+          console.log('Error deleting person:', error);
+        });
+    }
   };
 
-  const filteredPersons = persons.filter((person) =>
-    person.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPersons = persons.filter((person) => {
+    return person && person.name && person.name.toLowerCase().includes(searchTerm ? searchTerm.toLowerCase() : '');
+  });
 
   return (
     <div>
@@ -109,7 +142,7 @@ const App = () => {
 
       <h3>Numbers</h3>
 
-      <Persons persons={filteredPersons} />
+      <Persons persons={filteredPersons} handleDelete={handleDelete} />
     </div>
   );
 };
